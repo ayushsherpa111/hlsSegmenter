@@ -1,4 +1,4 @@
-module hlstest
+module hlsSegmenter
 
 go 1.15
 
