@@ -12,7 +12,6 @@ videoConfig := segments.VideoConfig{
   ConstRateFactor: 19,
   IframeInterval:  60,
   Profile:         segments.Main, // h264 profile
-  VideoFile:       "./assets/test.mp4",
 }
 
 headerConfig := segments.HeaderConfig {
@@ -29,6 +28,8 @@ outputConfig := segments.OutputConfig{
   PlaylistFile:   "./frames2/short.m3u8",
   SegmentPattern: "./frames2/output_%d.ts",
 }
+
+videoConfig.SetVideoFile("./assets/test.mp4")
 
 playlist := segments.NewHlsConfig(headerConfig, videoConfig, audioConfig, outputConfig, os.Stdout, os.Stderr)
 

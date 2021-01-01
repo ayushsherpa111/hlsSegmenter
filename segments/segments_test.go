@@ -102,7 +102,7 @@ func TestVideoConfig(t *testing.T) {
 				VideoBitrate:    "4200k",
 				Profile:         Main,
 				ConstRateFactor: 55,
-				VideoFile:       "../assets/short.mp4",
+				videoFile:       "../assets/short.mp4",
 				IframeInterval:  29 * 2,
 			},
 		},

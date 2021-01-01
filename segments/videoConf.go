@@ -22,9 +22,10 @@ const (
 
 var (
 	videoConfDefaults = map[string]interface{}{
-		hlsCRF:       30,
-		videoBitrate: "3000k",
-		iFrameInt:    25,
+		sceneCutDetection: "0",
+		hlsCRF:            30,
+		videoBitrate:      "3000k",
+		iFrameInt:         "25",
 	}
 )
 
@@ -52,7 +53,7 @@ type VideoConfig struct {
 	VideoBitrate    string
 	Profile         VideoProfile
 	ConstRateFactor int
-	VideoFile       string
+	videoFile       string
 	IframeInterval  int
 }
 
@@ -73,25 +74,34 @@ func (v VideoConfig) isValid() error {
 		return errors.New("Invalid Constant Rate Factor must be between 0-51")
 	}
 
-	if _, e := os.Stat(v.VideoFile); e != nil {
-		return errors.New("Failed to open file " + v.VideoFile)
-	} else if os.IsNotExist(e) {
-		return errors.New(v.VideoFile + "File does not exist")
+	if v.videoFile == "" {
+		return errors.New("Video File has not been set.")
 	}
 
+	return nil
+}
+
+func (v *VideoConfig) SetVideoFile(fileName string) error {
+	if _, e := os.Stat(fileName); e != nil {
+		return errors.New("Failed to open file " + v.videoFile)
+	} else if os.IsNotExist(e) {
+		return errors.New(v.videoFile + "File does not exist")
+	}
+	v.videoFile = fileName
 	return nil
 }
 
 func (v VideoConfig) cmdArgs() []string {
 	var args = make([]string, 0)
 
-	args = append(args, inputFile, v.VideoFile)
+	args = append(args, inputFile, v.videoFile)
 
 	args = append(args, videoScale, fmt.Sprintf(videoResolution, v.Res.Width, v.Res.Height))
 
 	args = append(args, videoCodecOption, v.VideoCodec.String())
 
-	args = append(args, sceneCutDetection, "0")
+	args = append(args, sceneCutDetection, videoConfDefaults[sceneCutDetection].(string))
+
 	if v.ConstRateFactor == 0 {
 		v.ConstRateFactor = videoConfDefaults[hlsCRF].(int)
 	}
@@ -107,7 +117,8 @@ func (v VideoConfig) cmdArgs() []string {
 	if v.IframeInterval == 0 {
 		v.IframeInterval = videoConfDefaults[iFrameInt].(int)
 	}
-	args = append(args, iFrameInt, strconv.Itoa(v.IframeInterval), iFrameMin, "25")
+
+	args = append(args, iFrameInt, strconv.Itoa(v.IframeInterval), iFrameMin, videoConfDefaults[iFrameInt].(string))
 
 	return args
 }
