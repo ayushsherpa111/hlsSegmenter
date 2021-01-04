@@ -48,12 +48,10 @@ func (h HeaderConfig) cmdArgs() []string {
 		// set the Default args for this argument
 		h.Duration, _ = headerConfigDefaults[hlsSegmentTimeSlice]
 	}
-	args = append(args, strconv.Itoa(h.Duration), sequenceStartNum)
+	args = append(args, strconv.Itoa(h.Duration))
 
-	if h.SequenceNum == 0 {
-		h.SequenceNum = headerConfigDefaults[sequenceStartNum]
-	}
-	args = append(args, strconv.Itoa(h.SequenceNum), hlsPlaylistType, h.PlaylistType.String())
+	args = append(args, sequenceStartNum, strconv.Itoa(h.SequenceNum))
+	args = append(args, hlsPlaylistType, h.PlaylistType.String())
 
 	return args
 }

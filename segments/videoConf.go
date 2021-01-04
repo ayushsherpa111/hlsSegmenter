@@ -9,65 +9,41 @@ import (
 
 const (
 	videoScale        = "-vf"
-	videoResolution   = "scale=w=%v:h=%v:force_original_aspect_ratio=decrease"
 	hlsCRF            = "-crf"
-	videoCodecOption  = "-c:v"
-	videoBitrate      = "-b:v"
-	videoProfile      = "-profile:v"
+	videoBitrateMap   = "-b:v:%d"
 	iFrameInt         = "-g" // measured in terms of number of frames
 	iFrameMin         = "-keyint_min"
+	videoProfile      = "-profile:v"
 	sceneCutDetection = "-sc_threshold"
 	inputFile         = "-i"
+	videoStreamMap    = "-c:v:%d"
+	streamMap         = "-var_stream_map"
 )
 
 var (
 	videoConfDefaults = map[string]interface{}{
 		sceneCutDetection: "0",
-		hlsCRF:            30,
-		videoBitrate:      "3000k",
+		hlsCRF:            20,
 		iFrameInt:         "25",
 	}
 )
 
-type Resolution struct {
-	Width  int
-	Height int
-}
-
-func (r Resolution) isValid() error {
-
-	if r.Width < 0 {
-		return errors.New("Invalid Width.")
-	}
-
-	if r.Height < 0 {
-		return errors.New("Invalid Height.")
-	}
-
-	return nil
-}
-
 type VideoConfig struct {
-	Res             Resolution
+	Rend            Renditions
 	VideoCodec      VideoCodecs
-	VideoBitrate    string
-	Profile         VideoProfile
 	ConstRateFactor int
 	videoFile       string
 	IframeInterval  int
+	Profile         VideoProfile
 }
 
 func (v VideoConfig) isValid() error {
-	if resErr := v.Res.isValid(); resErr != nil {
+	if resErr := v.Rend.isValid(); resErr != nil {
 		return resErr
 	}
 
 	if v.IframeInterval < 0 {
 		return errors.New("Invlid IFrame Interval")
-	}
-
-	if v.VideoBitrate != "" && !regexpMatch(bitRateRegExp, v.VideoBitrate) {
-		return errors.New("Invalid Bitrate. Expected Format [Nk] where N = Decimal Number ")
 	}
 
 	if v.ConstRateFactor > 51 || v.ConstRateFactor < 0 {
@@ -91,34 +67,63 @@ func (v *VideoConfig) SetVideoFile(fileName string) error {
 	return nil
 }
 
+func (v *VideoConfig) setVideoMaps(res []Resolution) []string {
+	args := make([]string, 0)
+	for i, r := range res {
+		CodecMap := fmt.Sprintf(videoStreamMap, i)
+		BitrateMap := fmt.Sprintf(videoBitrateMap, i)
+		args = append(args, "-map", r.varName, CodecMap, v.VideoCodec.String(), BitrateMap, r.Bitrate)
+	}
+	return args
+}
+
+func (v *VideoConfig) setAudioMaps(streams int) []string {
+	args := make([]string, 2*streams)
+	for i := 0; i < 2*streams; i += 2 {
+		args[i] = "-map"
+		args[i+1] = "a:0"
+	}
+	return args
+}
+
+func (v *VideoConfig) setVarStreamMap(resolutions []Resolution) []string {
+	args := make([]string, 0)
+	args = append(args, streamMap)
+	stream := ""
+
+	for i, v := range resolutions {
+		stream += fmt.Sprintf("v:%d,a:%d,name:%d", i, i, v.Height)
+		if i != len(resolutions)-1 {
+			stream += " "
+		}
+	}
+	args = append(args, stream)
+	return args
+}
+
 func (v VideoConfig) cmdArgs() []string {
 	var args = make([]string, 0)
 
 	args = append(args, inputFile, v.videoFile)
 
-	args = append(args, videoScale, fmt.Sprintf(videoResolution, v.Res.Width, v.Res.Height))
+	resolutionCmd, resolutionVars := v.Rend.cmdArgs()
 
-	args = append(args, videoCodecOption, v.VideoCodec.String())
+	args = append(args, resolutionCmd...)                  // filter_complex
+	args = append(args, v.setVideoMaps(resolutionVars)...) // -map video
+	args = append(args, v.setVarStreamMap(resolutionVars)...)
 
 	args = append(args, sceneCutDetection, videoConfDefaults[sceneCutDetection].(string))
 
-	if v.ConstRateFactor == 0 {
-		v.ConstRateFactor = videoConfDefaults[hlsCRF].(int)
-	}
 	args = append(args, hlsCRF, strconv.Itoa(v.ConstRateFactor))
-
-	if v.VideoBitrate == "" {
-		v.VideoBitrate = videoConfDefaults[videoBitrate].(string)
-	}
-	args = append(args, videoBitrate, v.VideoBitrate)
-
-	args = append(args, videoProfile, v.Profile.String())
 
 	if v.IframeInterval == 0 {
 		v.IframeInterval = videoConfDefaults[iFrameInt].(int)
 	}
 
-	args = append(args, iFrameInt, strconv.Itoa(v.IframeInterval), iFrameMin, videoConfDefaults[iFrameInt].(string))
+	args = append(args, iFrameInt, strconv.Itoa(v.IframeInterval))
+	args = append(args, iFrameMin, videoConfDefaults[iFrameInt].(string))
+	args = append(args, videoProfile, v.Profile.String())
 
+	args = append(args, v.setAudioMaps(len(resolutionVars))...) // -map audio
 	return args
 }

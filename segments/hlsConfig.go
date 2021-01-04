@@ -1,21 +1,26 @@
 package segments
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os/exec"
 	"strings"
 )
 
-const baseCmd = "ffmpeg"
+const (
+	baseCmd    = "ffmpeg"
+	masterConf = "-master_pl_name"
+)
 
 type HlsConfig struct {
-	Header     HeaderConfig
-	Output     OutputConfig
-	Video      VideoConfig
-	Audio      AudioConfig
-	OutputFile io.Writer
-	ErrorFile  io.Writer
+	Header         HeaderConfig
+	Output         OutputConfig
+	Video          VideoConfig
+	Audio          AudioConfig
+	OutputFile     io.Writer
+	ErrorFile      io.Writer
+	MasterPlaylist string
 }
 
 func (c *HlsConfig) getArgs() []string {
@@ -23,6 +28,7 @@ func (c *HlsConfig) getArgs() []string {
 	args = append(args, c.Video.cmdArgs()...)
 	args = append(args, c.Audio.cmdArgs()...)
 	args = append(args, c.Header.cmdArgs()...)
+	args = append(args, masterConf, c.MasterPlaylist)
 	args = append(args, c.Output.cmdArgs()...)
 	return args
 }
@@ -44,6 +50,10 @@ func (c *HlsConfig) Exec() error {
 
 func (c *HlsConfig) isValid() error {
 
+	if c.MasterPlaylist == "" {
+		return errors.New("Missing master playlist")
+	}
+
 	if headerErr := c.Header.isValid(); headerErr != nil {
 		return headerErr
 	}
@@ -63,18 +73,20 @@ func (c *HlsConfig) isValid() error {
 	return nil
 }
 
-func NewHlsConfig(headerConfig HeaderConfig,
+func NewHlsConfig(masterPlaylist string,
+	headerConfig HeaderConfig,
 	videoConfig VideoConfig,
 	audioConfig AudioConfig,
 	outputConfig OutputConfig,
 	outputFile io.Writer,
 	logFile io.Writer) *HlsConfig {
 	return &HlsConfig{
-		Video:      videoConfig,
-		Header:     headerConfig,
-		Audio:      audioConfig,
-		Output:     outputConfig,
-		ErrorFile:  logFile,
-		OutputFile: outputFile,
+		MasterPlaylist: masterPlaylist,
+		Video:          videoConfig,
+		Header:         headerConfig,
+		Audio:          audioConfig,
+		Output:         outputConfig,
+		ErrorFile:      logFile,
+		OutputFile:     outputFile,
 	}
 }

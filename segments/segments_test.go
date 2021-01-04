@@ -1,6 +1,7 @@
 package segments
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -94,26 +95,37 @@ func TestVideoConfig(t *testing.T) {
 	var testCases = []testCase{
 		{
 			config: VideoConfig{
-				Res: Resolution{
-					Width:  1080,
-					Height: 720,
-				},
+				Rend: Renditions{[]Resolution{
+					{Width: 1080, Height: 720, Bitrate: "3000k"},
+					{Width: 960, Height: 540, Bitrate: "2000k"},
+				}},
 				VideoCodec:      H264,
-				VideoBitrate:    "4200k",
-				Profile:         Main,
-				ConstRateFactor: 55,
+				ConstRateFactor: 23,
 				videoFile:       "../assets/short.mp4",
 				IframeInterval:  29 * 2,
+				Profile:         Main,
 			},
 		},
 	}
-	runConfigTests(testCases, t)
+	// runConfigTests(testCases, t)
+	fmt.Println(testCases[0].config.cmdArgs())
+}
+
+func TestRenditions(t *testing.T) {
+	renditions := Renditions{
+		Res: []Resolution{
+			{Width: 1080, Height: 720, Bitrate: "3000k"},
+			{Width: 960, Height: 540, Bitrate: "2000k"},
+			{Width: 768, Height: 432, Bitrate: "1100k"},
+		},
+	}
+	fmt.Println(renditions.cmdArgs())
 }
 
 func runConfigTests(testCases []testCase, t *testing.T) {
 	for _, test := range testCases {
 		if e := test.config.isValid(); e != nil {
-			t.Errorf("Invalid Config File: %s ", e)
+			t.Errorf("Invalid Config: %s ", e)
 		}
 		gotResult := strings.Join(test.config.cmdArgs(), " ")
 		if len(gotResult) != len(test.result) {
