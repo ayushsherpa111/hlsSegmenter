@@ -45,7 +45,7 @@ func (r Renditions) isValid() error {
 func (r *Renditions) cmdArgs() ([]string, []Resolution) {
 	args := make([]string, 0)
 	args = append(args, filterComplex)
-	resSplit := fmt.Sprintf(videoRes, len(r.Res))
+	resSplit := "\"" + fmt.Sprintf(videoRes, len(r.Res))
 	scaleVar := make([]string, len(r.Res))
 	for i := range r.Res {
 		tempVars := fmt.Sprintf(tempVarConf, "temp", i)
@@ -53,7 +53,7 @@ func (r *Renditions) cmdArgs() ([]string, []Resolution) {
 		scaleVar[i] = fmt.Sprintf(scaleConf, tempVars, r.Res[i].Width, r.Res[i].Height, r.Res[i].varName)
 		resSplit += tempVars
 	}
-	resSplit += ";" + strings.Join(scaleVar, ";")
+	resSplit += ";" + strings.Join(scaleVar, ";") + "\""
 	args = append(args, resSplit)
 	return args, r.Res
 }

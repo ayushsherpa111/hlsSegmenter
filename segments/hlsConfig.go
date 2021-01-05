@@ -38,6 +38,7 @@ func (c *HlsConfig) Exec() error {
 		return e
 	}
 	fmt.Println("ffmpeg", strings.Join(c.getArgs(), " "))
+	return nil
 	cmd := exec.Command(baseCmd, c.getArgs()...)
 	cmd.Stdout = c.OutputFile
 	cmd.Stderr = c.ErrorFile
