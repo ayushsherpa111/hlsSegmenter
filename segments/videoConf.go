@@ -86,14 +86,14 @@ func (v *VideoConfig) setAudioMaps(streams int) []string {
 	return args
 }
 
-func (v *VideoConfig) setVarStreamMap(resolutions []Resolution) []string {
+func (v *VideoConfig) SetVarStreamMap() []string {
 	args := make([]string, 0)
 	args = append(args, streamMap)
 	stream := ""
 
-	for i, v := range resolutions {
-		stream += fmt.Sprintf("v:%d,a:%d,name:%d", i, i, v.Height)
-		if i != len(resolutions)-1 {
+	for i, res := range v.Rend.Res {
+		stream += fmt.Sprintf("v:%d,a:%d,name:%d", i, i, res.Height)
+		if i != len(v.Rend.Res)-1 {
 			stream += " "
 		}
 	}
@@ -110,7 +110,6 @@ func (v VideoConfig) cmdArgs() []string {
 
 	args = append(args, resolutionCmd...)                  // filter_complex
 	args = append(args, v.setVideoMaps(resolutionVars)...) // -map video
-	args = append(args, v.setVarStreamMap(resolutionVars)...)
 
 	args = append(args, sceneCutDetection, videoConfDefaults[sceneCutDetection].(string))
 

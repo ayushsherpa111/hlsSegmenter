@@ -29,6 +29,7 @@ func (c *HlsConfig) getArgs() []string {
 	args = append(args, c.Audio.cmdArgs()...)
 	args = append(args, c.Header.cmdArgs()...)
 	args = append(args, masterConf, c.MasterPlaylist)
+	args = append(args, c.Video.SetVarStreamMap()...)
 	args = append(args, c.Output.cmdArgs()...)
 	return args
 }
