@@ -89,14 +89,15 @@ func (v *VideoConfig) setAudioMaps(streams int) []string {
 func (v *VideoConfig) SetVarStreamMap() []string {
 	args := make([]string, 0)
 	args = append(args, streamMap)
-	stream := ""
+	stream := "\""
 
 	for i, res := range v.Rend.Res {
-		stream += fmt.Sprintf("v:%d,a:%d,name:%d", i, i, res.Height)
+		stream += fmt.Sprintf("v:%d,a:%d,name:%vpx", i, i, res.Height)
 		if i != len(v.Rend.Res)-1 {
 			stream += " "
 		}
 	}
+	stream += "\""
 	args = append(args, stream)
 	return args
 }
