@@ -2,6 +2,7 @@ package segments
 
 import (
 	"errors"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -15,6 +16,7 @@ type OutputConfig struct {
 	PlaylistFile   string // target .m3u8 playlist file, can be relative file path
 	SegmentPattern string // Pattern that is used by ffmpeg to generate segments
 	BaseURL        string // Base URL for every segment
+	BaseFolder     string
 }
 
 func (o OutputConfig) isValid() error {
@@ -37,7 +39,7 @@ func (o OutputConfig) cmdArgs() []string {
 		args = append(args, hlsBaseURL, o.BaseURL)
 	}
 
-	args = append(args, hlsSegmentFileName, o.SegmentPattern, o.PlaylistFile)
+	args = append(args, hlsSegmentFileName, path.Join(o.BaseFolder, o.SegmentPattern), path.Join(o.BaseFolder, o.PlaylistFile))
 
 	return args
 }

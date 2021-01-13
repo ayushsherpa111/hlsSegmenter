@@ -28,5 +28,7 @@ client
 frames*
 server.go
 *.drawio
+docker-compose.yml
+hlsSegmenter
 
 # End of https://www.toptal.com/developers/gitignore/api/go

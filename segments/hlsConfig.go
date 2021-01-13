@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 const (
@@ -38,7 +40,10 @@ func (c *HlsConfig) Exec() error {
 	if e := c.isValid(); e != nil {
 		return e
 	}
-	fmt.Println("ffmpeg", strings.Join(c.getArgs(), " "))
+	if e := os.MkdirAll(c.Output.BaseFolder, os.ModePerm); e != nil {
+		return e
+	}
+	fmt.Fprintln(c.OutputFile, time.Now().UTC().Format("2006/01/02 15:04:05"), "ffmpeg", strings.Join(c.getArgs(), " "))
 	cmd := exec.Command(baseCmd, c.getArgs()...)
 	cmd.Stdout = c.OutputFile
 	cmd.Stderr = c.ErrorFile

@@ -89,7 +89,7 @@ func (v *VideoConfig) setAudioMaps(streams int) []string {
 func (v *VideoConfig) SetVarStreamMap() []string {
 	args := make([]string, 0)
 	args = append(args, streamMap)
-	stream := "\""
+	stream := ""
 
 	for i := range v.Rend.Res {
 		stream += fmt.Sprintf("v:%d,a:%d", i, i)
@@ -97,7 +97,6 @@ func (v *VideoConfig) SetVarStreamMap() []string {
 			stream += " "
 		}
 	}
-	stream += "\""
 	args = append(args, stream)
 	return args
 }
