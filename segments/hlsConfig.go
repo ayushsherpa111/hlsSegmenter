@@ -44,6 +44,7 @@ func (c *HlsConfig) Exec() error {
 		return e
 	}
 	fmt.Fprintln(c.OutputFile, time.Now().UTC().Format("2006/01/02 15:04:05"), "ffmpeg", strings.Join(c.getArgs(), " "))
+	return nil
 	cmd := exec.Command(baseCmd, c.getArgs()...)
 	cmd.Stdout = c.OutputFile
 	cmd.Stderr = c.ErrorFile

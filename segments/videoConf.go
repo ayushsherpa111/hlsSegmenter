@@ -91,8 +91,8 @@ func (v *VideoConfig) SetVarStreamMap() []string {
 	args = append(args, streamMap)
 	stream := ""
 
-	for i := range v.Rend.Res {
-		stream += fmt.Sprintf("v:%d,a:%d", i, i)
+	for i, res := range v.Rend.Res {
+		stream += fmt.Sprintf("v:%d,a:%d,name:%dpx", i, i, res.Height)
 		if i != len(v.Rend.Res)-1 {
 			stream += " "
 		}
