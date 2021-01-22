@@ -38,8 +38,10 @@ func (o OutputConfig) cmdArgs() []string {
 		}
 		args = append(args, hlsBaseURL, o.BaseURL)
 	}
+	o.SegmentPattern = path.Join(o.BaseFolder, o.SegmentPattern)
+	o.PlaylistFile = path.Join(o.BaseFolder, o.PlaylistFile)
 
-	args = append(args, hlsSegmentFileName, path.Join(o.BaseFolder, o.SegmentPattern), path.Join(o.BaseFolder, o.PlaylistFile))
+	args = append(args, hlsSegmentFileName, o.SegmentPattern, o.PlaylistFile)
 
 	return args
 }
