@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -41,25 +42,13 @@ func (c *HlsConfig) Exec() error {
 	if e := c.isValid(); e != nil {
 		return e
 	}
-
-	if e := os.MkdirAll(c.Output.BaseFolder, os.ModePerm); e != nil {
-		return e
-	}
-	dir, _ := filepath.Split(c.Output.SegmentPattern)
-	upTo := createUpTo(dir)
-
-	if e := os.MkdirAll(upTo, os.ModePerm); e != nil {
-		return e
-	}
-
-	dir, _ = filepath.Split(c.Output.PlaylistFile)
-	upTo = createUpTo(dir)
-
-	if e := os.MkdirAll(upTo, os.ModePerm); e != nil {
+	if e := c.createAllFolders(); e != nil {
+		log.Println(e)
 		return e
 	}
 
 	fmt.Fprintln(c.OutputFile, time.Now().UTC().Format("2006/01/02 15:04:05"), "ffmpeg", strings.Join(c.getArgs(), " "))
+
 	cmd := exec.Command(baseCmd, c.getArgs()...)
 	cmd.Stdout = c.OutputFile
 	cmd.Stderr = c.ErrorFile
@@ -70,6 +59,33 @@ func (c *HlsConfig) Exec() error {
 	return nil
 }
 
+func (c *HlsConfig) createAllFolders() error {
+	if e := os.MkdirAll(c.Output.BaseFolder, os.ModePerm); e != nil {
+		return e
+	}
+
+	dir, _ := filepath.Split(filepath.Join(c.Output.BaseFolder, c.Output.PlaylistFile))
+	upTo := createUpTo(dir)
+	log.Println(upTo)
+	if upTo != "" {
+		if e := os.MkdirAll(upTo, os.ModePerm); e != nil {
+			return e
+		}
+	}
+
+	dir, _ = filepath.Split(filepath.Join(c.Output.BaseFolder, c.Output.SegmentPattern))
+	upTo = createUpTo(dir)
+	log.Println(upTo)
+
+	if upTo != "" {
+		if e := os.MkdirAll(upTo, os.ModePerm); e != nil {
+			return e
+		}
+	}
+
+	return nil
+}
+
 func createUpTo(path string) string {
 	dirs := strings.Split(path, "/")
 	for i, v := range dirs {
@@ -77,7 +93,7 @@ func createUpTo(path string) string {
 			return filepath.Join(dirs[:i]...)
 		}
 	}
-	return ""
+	return filepath.Join(dirs...)
 }
 
 func (c *HlsConfig) isValid() error {
@@ -87,18 +103,22 @@ func (c *HlsConfig) isValid() error {
 	}
 
 	if headerErr := c.Header.isValid(); headerErr != nil {
+		log.Println(headerErr)
 		return headerErr
 	}
 
 	if outputErr := c.Output.isValid(); outputErr != nil {
+		log.Println(outputErr)
 		return outputErr
 	}
 
 	if audioErr := c.Audio.isValid(); audioErr != nil {
+		log.Println(audioErr)
 		return audioErr
 	}
 
 	if videoErr := c.Video.isValid(); videoErr != nil {
+		log.Println(videoErr)
 		return videoErr
 	}
 

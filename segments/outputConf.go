@@ -29,7 +29,7 @@ func (o OutputConfig) isValid() error {
 	return nil
 }
 
-func (o OutputConfig) cmdArgs() []string {
+func (o *OutputConfig) cmdArgs() []string {
 	args := make([]string, 0)
 
 	if o.BaseURL != "" {
@@ -38,10 +38,8 @@ func (o OutputConfig) cmdArgs() []string {
 		}
 		args = append(args, hlsBaseURL, o.BaseURL)
 	}
-	o.SegmentPattern = path.Join(o.BaseFolder, o.SegmentPattern)
-	o.PlaylistFile = path.Join(o.BaseFolder, o.PlaylistFile)
 
-	args = append(args, hlsSegmentFileName, o.SegmentPattern, o.PlaylistFile)
+	args = append(args, hlsSegmentFileName, path.Join(o.BaseFolder, o.SegmentPattern), path.Join(o.BaseFolder, o.PlaylistFile))
 
 	return args
 }

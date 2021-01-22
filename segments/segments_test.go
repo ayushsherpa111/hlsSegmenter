@@ -46,7 +46,7 @@ func TestHeaderConfig(t *testing.T) {
 func TestOutputConfig(t *testing.T) {
 	testCase := []testCase{
 		{
-			config: OutputConfig{
+			config: &OutputConfig{
 				BaseURL:        "https://localhost:8080/",
 				PlaylistFile:   "output.m3u8",
 				SegmentPattern: "segment_%t.ts",
@@ -54,7 +54,7 @@ func TestOutputConfig(t *testing.T) {
 			result: "-hls_base_url https://localhost:8080/ -hls_segment_filename segment_%t.ts output.m3u8",
 		},
 		{
-			config: OutputConfig{
+			config: &OutputConfig{
 				PlaylistFile:   "output.m3u8",
 				SegmentPattern: "./%v/test_%03d.ts",
 			},
