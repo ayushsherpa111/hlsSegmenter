@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -40,9 +41,24 @@ func (c *HlsConfig) Exec() error {
 	if e := c.isValid(); e != nil {
 		return e
 	}
+
 	if e := os.MkdirAll(c.Output.BaseFolder, os.ModePerm); e != nil {
 		return e
 	}
+	dir, _ := filepath.Split(c.Output.SegmentPattern)
+	upTo := createUpTo(dir)
+
+	if e := os.MkdirAll(upTo, os.ModePerm); e != nil {
+		return e
+	}
+
+	dir, _ = filepath.Split(c.Output.PlaylistFile)
+	upTo = createUpTo(dir)
+
+	if e := os.MkdirAll(upTo, os.ModePerm); e != nil {
+		return e
+	}
+
 	fmt.Fprintln(c.OutputFile, time.Now().UTC().Format("2006/01/02 15:04:05"), "ffmpeg", strings.Join(c.getArgs(), " "))
 	cmd := exec.Command(baseCmd, c.getArgs()...)
 	cmd.Stdout = c.OutputFile
@@ -52,6 +68,16 @@ func (c *HlsConfig) Exec() error {
 		return e
 	}
 	return nil
+}
+
+func createUpTo(path string) string {
+	dirs := strings.Split(path, "/")
+	for i, v := range dirs {
+		if strings.Contains(v, "%v") || strings.Contains(v, "%d") && i > 0 {
+			return filepath.Join(dirs[:i]...)
+		}
+	}
+	return ""
 }
 
 func (c *HlsConfig) isValid() error {
